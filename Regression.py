@@ -42,8 +42,9 @@ class CustomModelWrapper:
 
 def main():
     dataFr = pd.read_csv("./clean_data.csv")
-    X = dataFr['Assessed Value'].values
-    Y = dataFr[picked_column_names].values
+    
+    X = dataFr[picked_column_names].values
+    Y = dataFr['Assessed Value'].values
 
     print(X)
     print(Y)
