@@ -3,11 +3,11 @@ import pandas as pd
 def main():
     picked_column_names = ["Year Property Built", "Number of Bathrooms", "Number of Bedrooms",
                     "Number of Rooms", "Number of Stories", "Number of Units", "Property Area",
-                    "Basement Area", "Lot Area"]
+                    "Basement Area", "Lot Area", "Assessor Neighborhood"]
     column_types = {"Year Property Built": float, "Number of Bathrooms": float, "Number of Bedrooms": float,
                     "Number of Rooms": float, "Number of Stories": float, "Number of Units": float, "Property Area": float,
                     "Basement Area": float, "Lot Area": float, "Assessed Fixtures Value":int, "Assessed Improvement Value":int,
-                    "Assessed Land Value":int, "Assessed Personal Property Value":int}
+                    "Assessed Land Value":int, "Assessed Personal Property Value":int, "Assessor Neighborhood":str}
 
     print('Reading source file')
     dataFr = pd.read_csv("./Assessor_Historical_Secured_Property_Tax_Rolls.csv",sep=';', low_memory = False,
@@ -40,6 +40,7 @@ def main():
 
     #print('Sorting values')
     #newDataFr = newDataFr.sort_values(by=['Assessed Value'], ascending=False)
+    
 
     print(newDataFr)
 

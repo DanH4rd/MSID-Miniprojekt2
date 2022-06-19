@@ -15,6 +15,10 @@ from scipy.optimize import curve_fit
 from sklearn.metrics import mean_squared_error
 import seaborn as sns
 
+import numpy as np
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, matthews_corrcoef
+from sklearn.preprocessing import MinMaxScaler
+
 matplotlib.rcParams['figure.figsize'] = [10, 10]
 
 PropertyArea = 0
@@ -41,32 +45,57 @@ class CustomModelWrapper:
         return self.pred_fun(x.ravel(), *self.params)
 
 def main():
+    print('Read data')
     dataFr = pd.read_csv("./clean_data.csv")
     
+    
+    print('Train data in: all')
     X = dataFr[picked_column_names].values
     Y = dataFr['Assessed Value'].values
 
-    print(X)
-    print(Y)
-    X =(X-X.mean())/X.std()
-    Y =(Y-Y.mean())/Y.std()
-
-    print(X)
-    print(Y)
+    # normilize X
+    #X =(X-X.mean())/X.std()
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    X = scaler.fit_transform(X)
     
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
-    
-    params, _ = curve_fit(func, xdata=X_train.ravel(), ydata=Y_train)
-    
-    print('Params: ' + str(params))
-    print()
-    
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)    
+    params, _ = curve_fit(func, xdata=X_train.ravel(), ydata=Y_train)    
     model_custom = CustomModelWrapper(func, params)
     Y_pred = list(map(model_custom.predict, X_test))
 
-    svr_mse = mean_squared_error(Y_test, Y_pred)
-    print('Mean error: ' + svr_mse.astype('str'))
+    svr_mse = mean_squared_error(Y_test, Y_pred, squared=False)
+    
+    print('AVG value: ' + str(np.average(Y)))
+    print('AVG traint value: ' + str(np.average(Y_test)))
+    print('AVG pred value: ' + str(np.average(Y_pred)))
+    print('RMSE error: ' + svr_mse.astype('str'))
+    print('Error % from avg: ' + str(round(svr_mse/np.average(Y)*100, 0)) + '%')
     print()
+    
+    if(False):
+        for loc in np.unique(dataFr['Assessor Neighborhood'].dropna().values.astype('str')):
+            print('Train data in: ' + loc)
+            selectDataFr = dataFr[dataFr['Assessor Neighborhood'] == loc]
+            X = selectDataFr[picked_column_names].values
+            Y = selectDataFr['Assessed Value'].values
+
+            # normilize X
+            #X =(X-X.mean())/X.std()
+            X = scaler.fit_transform(X)
+            
+            X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)    
+            params, _ = curve_fit(func, xdata=X_train.ravel(), ydata=Y_train)    
+            model_custom = CustomModelWrapper(func, params)
+            Y_pred = list(map(model_custom.predict, X_test))
+
+            svr_mse = mean_squared_error(Y_test, Y_pred)
+            
+            print('AVG value: ' + str(np.average(Y)))
+            print('AVG traint value: ' + str(np.average(Y_test)))
+            print('AVG pred value: ' + str(np.average(Y_pred)))
+            print('Mean error: ' + svr_mse.astype('str'))
+            print('Error % from avg: ' + (round(svr_mse/np.average(Y)*100,0)).astype('str') + '%')
+            print()
 
 
 if __name__ == "__main__":
