@@ -24,17 +24,15 @@ matplotlib.rcParams['figure.figsize'] = [10, 10]
 PropertyArea = 0
 NumberOfRooms = 1
 NumberOfBath = 2
-NumberOfBed = 3
-NumberOfUnit = 4
-NumberOfStories = 5
-BasementArea = 6
+NumberOfUnit = 3
+NumberOfStories = 4
 
 picked_column_names = ["Property Area", "Number of Rooms", "Number of Bathrooms",
-                       "Number of Bedrooms", "Number of Units",
-                     "Number of Stories",  "Basement Area"]
+                        "Number of Units", "Number of Stories"]
 
-def func(x, a0, a1, a2, a3, a4, a5, a):
-    return x[PropertyArea]*a0 + x[NumberOfRooms]*a1 + x[NumberOfBath]*a2 + x[NumberOfUnit]*a3 + x[NumberOfStories]*a4 + x[BasementArea]*a5 + a
+def func(x, a0, a1, a2, a3, a4, a):
+    return x[PropertyArea]*a0 + x[NumberOfRooms]*a1 
+    + x[NumberOfBath]*a2 + x[NumberOfUnit]*a3 + x[NumberOfStories]*a4 + a
 
 class CustomModelWrapper:
     def __init__(self, pred_fun, params):
@@ -46,19 +44,22 @@ class CustomModelWrapper:
 
 def main():
     print('Read data')
-    dataFr = pd.read_csv("./clean_data.csv")
-    
-    
+    #dataFr = pd.read_csv("./clean_data.csv")
+    dataFr = pd.read_csv("./clean_data_without_nans.csv")
+
+    # normilize X
+    #X =(X-X.mean())/X.std()
     print('Train data in: all')
     X = dataFr[picked_column_names].values
     Y = dataFr['Assessed Value'].values
 
     # normilize X
-    #X =(X-X.mean())/X.std()
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    X = scaler.fit_transform(X)
+    X =(X-X.mean())/X.std()
+    #X = scaler.fit_transform(X)
     
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)    
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.1, random_state=42)   
+    
+    
     params, _ = curve_fit(func, xdata=X_train.ravel(), ydata=Y_train)    
     model_custom = CustomModelWrapper(func, params)
     Y_pred = list(map(model_custom.predict, X_test))
@@ -68,35 +69,10 @@ def main():
     print('AVG value: ' + str(np.average(Y)))
     print('AVG traint value: ' + str(np.average(Y_test)))
     print('AVG pred value: ' + str(np.average(Y_pred)))
-    print('RMSE error: ' + svr_mse.astype('str'))
-    print('Error % from avg: ' + str(round(svr_mse/np.average(Y)*100, 0)) + '%')
+    print('Mean error: ' + svr_mse.astype('str'))
+    print('Error % from avg: ' + (round(svr_mse/np.average(Y)*100,0)).astype('str') + '%')
     print()
-    
-    if(False):
-        for loc in np.unique(dataFr['Assessor Neighborhood'].dropna().values.astype('str')):
-            print('Train data in: ' + loc)
-            selectDataFr = dataFr[dataFr['Assessor Neighborhood'] == loc]
-            X = selectDataFr[picked_column_names].values
-            Y = selectDataFr['Assessed Value'].values
-
-            # normilize X
-            #X =(X-X.mean())/X.std()
-            X = scaler.fit_transform(X)
-            
-            X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)    
-            params, _ = curve_fit(func, xdata=X_train.ravel(), ydata=Y_train)    
-            model_custom = CustomModelWrapper(func, params)
-            Y_pred = list(map(model_custom.predict, X_test))
-
-            svr_mse = mean_squared_error(Y_test, Y_pred)
-            
-            print('AVG value: ' + str(np.average(Y)))
-            print('AVG traint value: ' + str(np.average(Y_test)))
-            print('AVG pred value: ' + str(np.average(Y_pred)))
-            print('Mean error: ' + svr_mse.astype('str'))
-            print('Error % from avg: ' + (round(svr_mse/np.average(Y)*100,0)).astype('str') + '%')
-            print()
-
+        
 
 if __name__ == "__main__":
     main()

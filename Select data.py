@@ -1,9 +1,9 @@
 import pandas as pd
 
 def main():
-    picked_column_names = ["Year Property Built", "Number of Bathrooms", "Number of Bedrooms",
+    picked_column_names = ["Year Property Built", "Number of Bathrooms",
                     "Number of Rooms", "Number of Stories", "Number of Units", "Property Area",
-                    "Basement Area", "Lot Area", "Assessor Neighborhood"]
+                    "Lot Area", "Assessor Neighborhood"]
     column_types = {"Year Property Built": float, "Number of Bathrooms": float, "Number of Bedrooms": float,
                     "Number of Rooms": float, "Number of Stories": float, "Number of Units": float, "Property Area": float,
                     "Basement Area": float, "Lot Area": float, "Assessed Fixtures Value":int, "Assessed Improvement Value":int,
@@ -18,8 +18,7 @@ def main():
 
     print('Calculating Assessed Value')
     # liczymy Assesed Value dla co majatku
-    assessedValue = [row["Assessed Fixtures Value"]+ row["Assessed Improvement Value"]
-                     + row["Assessed Land Value"] + row["Assessed Personal Property Value"]
+    assessedValue = [row["Assessed Improvement Value"] + row["Assessed Land Value"]
                       for index, row in dataFr.iterrows()]
 
     print('Adding Assessed Value column')
@@ -28,15 +27,19 @@ def main():
     newDataFr = dataFr[picked_column_names].copy()
     newDataFr["Assessed Value"] = assessedValue
 
-    print("Fill NAN with zeroes")
-    newDataFr.fillna(0)
+    print("Drop nan")
+    newDataFr.dropna()
+    
+    print("Drop zeroes")
+    newDataFr.loc[~(newDataFr==0).all(axis=1)]
 
     print('Filtering values')
     # usuwamy majatki bez jakiegos pola terenu lub liczby pokojow
     newDataFr = newDataFr[newDataFr['Assessed Value'] > 0]
-    newDataFr = newDataFr[newDataFr['Property Area'] + newDataFr['Basement Area']+ newDataFr['Lot Area'] > 0]
-    newDataFr = newDataFr[newDataFr['Number of Bathrooms'] + newDataFr['Number of Bedrooms']
+    newDataFr = newDataFr[newDataFr['Property Area'] + newDataFr['Lot Area'] > 0]
+    newDataFr = newDataFr[newDataFr['Number of Bathrooms']
                           + newDataFr['Number of Rooms'] + newDataFr['Number of Stories'] + newDataFr['Number of Units'] > 0]
+    
 
     #print('Sorting values')
     #newDataFr = newDataFr.sort_values(by=['Assessed Value'], ascending=False)
@@ -48,7 +51,7 @@ def main():
 
     print('Writing to file')
     
-    newDataFr.to_csv("./clean_data.csv")
+    newDataFr.to_csv("./clean_data_without_nans_and_zeroes.csv")
 
     print('End of work')
  
